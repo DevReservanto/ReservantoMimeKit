@@ -498,25 +498,25 @@ namespace UnitTests.Cryptography {
 		[Test]
 		public void TestUnicodeSimpleBodyRsaSha1 ()
 		{
-			TestUnicode (DkimSignatureAlgorithm.RsaSha1, DkimCanonicalizationAlgorithm.Simple, "6GV1ZoyaprYbwRLXsr5+8zY5Jh0=");
+			TestUnicode (DkimSignatureAlgorithm.RsaSha1, DkimCanonicalizationAlgorithm.Simple, "vWcVHGQd8bnpbVRYue9Ha0jqVPU=");
 		}
 
 		[Test]
 		public void TestUnicodeSimpleBodyRsaSha256 ()
 		{
-			TestUnicode (DkimSignatureAlgorithm.RsaSha256, DkimCanonicalizationAlgorithm.Simple, "BuW/GpCA9rAVDfStp0Dc2duuFhmwcxhy5jOeL+Xn+ew=");
+			TestUnicode (DkimSignatureAlgorithm.RsaSha256, DkimCanonicalizationAlgorithm.Simple, "DDh8ROuXw2ujISrzf1HkuSCXxS0JWqUfUEXWYmcLncc=");
 		}
 
 		[Test]
 		public void TestUnicodeRelaxedBodyRsaSha1 ()
 		{
-			TestUnicode (DkimSignatureAlgorithm.RsaSha1, DkimCanonicalizationAlgorithm.Relaxed, "bbT6nP0aAiAP5OMguA+mHgpzgh4=");
+			TestUnicode (DkimSignatureAlgorithm.RsaSha1, DkimCanonicalizationAlgorithm.Relaxed, "vWcVHGQd8bnpbVRYue9Ha0jqVPU=");
 		}
 
 		[Test]
 		public void TestUnicodeRelaxedBodyRsaSha256 ()
 		{
-			TestUnicode (DkimSignatureAlgorithm.RsaSha256, DkimCanonicalizationAlgorithm.Relaxed, "PEaN3fYH5NdIg4QzgaSS+ceYlSMRnYbqCPMxncx6gy0=");
+			TestUnicode (DkimSignatureAlgorithm.RsaSha256, DkimCanonicalizationAlgorithm.Relaxed, "DDh8ROuXw2ujISrzf1HkuSCXxS0JWqUfUEXWYmcLncc=");
 		}
 
 		[Test]

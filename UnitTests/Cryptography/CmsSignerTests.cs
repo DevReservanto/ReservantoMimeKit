@@ -155,7 +155,7 @@ namespace UnitTests.Cryptography {
 					var cert = new X509Certificate2 (path, password, X509KeyStorageFlags.Exportable);
 					signer = new CmsSigner (cert);
 				} catch (CryptographicException cex) {
-					if (!path.EndsWith ("\\ec\\smime.pfx", StringComparison.Ordinal) || !cex.Message.Equals ("Keyset does not exist", StringComparison.Ordinal))
+					if (!path.EndsWith ("\\ec\\smime.pfx", StringComparison.Ordinal) || !cex.Message.Equals ("Sada klíčů neexistuje.", StringComparison.Ordinal))
 						Assert.Fail ($".ctor (X509Certificate2): {cex}");
 				} catch (Exception ex) {
 					Assert.Fail ($".ctor (X509Certificate2): {ex}");

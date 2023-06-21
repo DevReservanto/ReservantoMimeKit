@@ -26,6 +26,7 @@
 
 using System;
 using System.IO;
+using MimeKit.IO.Filters;
 #if ENABLE_NATIVE_DKIM
 using System.Security.Cryptography;
 #endif
@@ -57,6 +58,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="domain"/> is <see langword="null"/>.</para>
 		/// <para>-or-</para>
@@ -66,7 +68,7 @@ namespace MimeKit.Cryptography {
 		/// This constructor is no longer supported. Use one of the other constructors.
 		/// </exception>
 		[Obsolete ("This constructor is no longer supported. Use one of the other constructors.", true)]
-		protected DkimSignerBase (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256)
+		protected DkimSignerBase (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter? preFilter = null)
 		{
 			throw new NotImplementedException ();
 		}
@@ -85,6 +87,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="key"/> is <see langword="null"/>.</para>
 		/// <para>-or-</para>
@@ -95,7 +98,7 @@ namespace MimeKit.Cryptography {
 		/// <exception cref="System.ArgumentException">
 		/// <paramref name="key"/> is not a private key.
 		/// </exception>
-		protected DkimSignerBase (AsymmetricKeyParameter key, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256)
+		protected DkimSignerBase (AsymmetricKeyParameter key, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter? preFilter = null)
 		{
 			if (key == null)
 				throw new ArgumentNullException (nameof (key));
@@ -112,6 +115,7 @@ namespace MimeKit.Cryptography {
 			SignatureAlgorithm = algorithm;
 			Selector = selector;
 			Domain = domain;
+			PreFilter = preFilter;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 			PrivateKey = key;
@@ -128,6 +132,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="fileName"/> is <see langword="null"/>.</para>
 		/// <para>-or-</para>
@@ -154,7 +159,7 @@ namespace MimeKit.Cryptography {
 		/// <exception cref="System.IO.IOException">
 		/// An I/O error occurred.
 		/// </exception>
-		protected DkimSignerBase (string fileName, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256)
+		protected DkimSignerBase (string fileName, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter? preFilter = null)
 		{
 			if (fileName == null)
 				throw new ArgumentNullException (nameof (fileName));
@@ -177,6 +182,7 @@ namespace MimeKit.Cryptography {
 			SignatureAlgorithm = algorithm;
 			Selector = selector;
 			Domain = domain;
+			PreFilter = preFilter;
 		}
 
 		/// <summary>
@@ -193,6 +199,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="stream"/> is <see langword="null"/>.</para>
 		/// <para>-or-</para>
@@ -206,7 +213,7 @@ namespace MimeKit.Cryptography {
 		/// <exception cref="System.IO.IOException">
 		/// An I/O error occurred.
 		/// </exception>
-		protected DkimSignerBase (Stream stream, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256)
+		protected DkimSignerBase (Stream stream, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter? preFilter = null)
 		{
 			if (stream == null)
 				throw new ArgumentNullException (nameof (stream));
@@ -223,6 +230,7 @@ namespace MimeKit.Cryptography {
 			SignatureAlgorithm = algorithm;
 			Selector = selector;
 			Domain = domain;
+			PreFilter = preFilter;
 		}
 
 		/// <summary>
@@ -323,6 +331,14 @@ namespace MimeKit.Cryptography {
 
 			[Obsolete ("Setting the PrivateKey property will be removed in a future release. Use the constructor that accepts an AsymmetricKeyParameter instead.")]
 			set;
+		}
+
+		/// <summary>
+		/// Gets prefilter, which is applied before part of DKIM signature is created.
+		/// This filter runs before all standard filters.
+		/// </summary>
+		public IMimeFilter? PreFilter {
+			get; private set;
 		}
 
 		static AsymmetricKeyParameter LoadPrivateKey (Stream stream)

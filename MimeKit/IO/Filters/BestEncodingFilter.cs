@@ -74,53 +74,7 @@ namespace MimeKit.IO.Filters {
 			if (maxLineLength < FormatOptions.MinimumLineLength || maxLineLength > FormatOptions.MaximumLineLength)
 				throw new ArgumentOutOfRangeException (nameof (maxLineLength));
 
-			switch (constraint) {
-			case EncodingConstraint.SevenBit:
-				if (count0 > 0)
-					return ContentEncoding.Base64;
-
-				if (count8 > 0) {
-					if (count8 >= (int) (total * (17.0 / 100.0)))
-						return ContentEncoding.Base64;
-
-					return ContentEncoding.QuotedPrintable;
-				}
-
-				if (hasMarker || maxline > maxLineLength)
-					return ContentEncoding.QuotedPrintable;
-
-				break;
-			case EncodingConstraint.EightBit:
-				if (count0 > 0)
-					return ContentEncoding.Base64;
-
-				if (hasMarker || maxline > maxLineLength)
-					return ContentEncoding.QuotedPrintable;
-
-				if (count8 > 0)
-					return ContentEncoding.EightBit;
-
-				break;
-			case EncodingConstraint.None:
-				if (hasMarker || maxline > maxLineLength) {
-					if (count0 > 0 || count8 > (int) (total * (17.0 / 100.0)))
-						return ContentEncoding.Base64;
-
-					return ContentEncoding.QuotedPrintable;
-				}
-
-				if (count0 > 0)
-					return ContentEncoding.Binary;
-
-				if (count8 > 0)
-					return ContentEncoding.EightBit;
-
-				break;
-			default:
-				throw new ArgumentOutOfRangeException (nameof (constraint));
-			}
-
-			return ContentEncoding.SevenBit;
+			return ContentEncoding.Base64;
 		}
 
 		#region IMimeFilter implementation

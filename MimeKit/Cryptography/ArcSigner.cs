@@ -64,7 +64,7 @@ namespace MimeKit.Cryptography {
 		/// This constructor is no longer supported. Use one of the other constructors.
 		/// </exception>
 		[Obsolete ("This constructor is no longer supported. Use one of the other constructors.", true)]
-		protected ArcSigner (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256) : base (domain, selector, algorithm)
+		protected ArcSigner (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256) : base (domain, selector, algorithm, preFilter: null)
 		{
 		}
 

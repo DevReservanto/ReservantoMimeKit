@@ -39,6 +39,7 @@ using System.Net.Mail;
 
 #if ENABLE_CRYPTO
 using MimeKit.Cryptography;
+using MimeKit.IO.Filters;
 #endif
 
 using MimeKit.IO;
@@ -1777,7 +1778,7 @@ namespace MimeKit {
 		}
 
 #if ENABLE_CRYPTO
-		internal byte[] HashBody (FormatOptions options, DkimSignatureAlgorithm signatureAlgorithm, DkimCanonicalizationAlgorithm bodyCanonicalizationAlgorithm, int maxLength)
+		internal byte[] HashBody (FormatOptions options, DkimSignatureAlgorithm signatureAlgorithm, DkimCanonicalizationAlgorithm bodyCanonicalizationAlgorithm, int maxLength, IMimeFilter preFilter = null)
 		{
 			using (var stream = new DkimHashStream (signatureAlgorithm, maxLength)) {
 				using (var filtered = new FilteredStream (stream)) {
@@ -1787,6 +1788,10 @@ namespace MimeKit {
 						dkim = new DkimRelaxedBodyFilter ();
 					else
 						dkim = new DkimSimpleBodyFilter ();
+
+					if (preFilter != null) {
+						filtered.Add (preFilter);
+					}
 
 					filtered.Add (options.CreateNewLineFilter ());
 					filtered.Add (dkim);

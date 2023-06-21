@@ -33,6 +33,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Crypto;
 
 using MimeKit.IO;
+using MimeKit.IO.Filters;
 using MimeKit.Utils;
 
 namespace MimeKit.Cryptography {
@@ -62,6 +63,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="domain"/> is <see langword="null"/>.</para>
 		/// <para>-or-</para>
@@ -71,7 +73,7 @@ namespace MimeKit.Cryptography {
 		/// This constructor is no longer supported. Use one of the other constructors.
 		/// </exception>
 		[Obsolete ("This constructor is no longer supported. Use one of the other constructors.", true)]
-		public DkimSigner (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256) : base (domain, selector, algorithm)
+		public DkimSigner (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter preFilter = null) : base (domain, selector, algorithm, preFilter)
 		{
 		}
 
@@ -88,6 +90,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="key">The signer's private key.</param>
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="key"/> is <see langword="null"/>.</para>
@@ -99,7 +102,7 @@ namespace MimeKit.Cryptography {
 		/// <exception cref="System.ArgumentException">
 		/// <paramref name="key"/> is not a private key.
 		/// </exception>
-		public DkimSigner (AsymmetricKeyParameter key, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256) : base (key, domain, selector, algorithm)
+		public DkimSigner (AsymmetricKeyParameter key, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter preFilter = null) : base (key, domain, selector, algorithm, preFilter)
 		{
 		}
 
@@ -120,6 +123,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="fileName"/> is <see langword="null"/>.</para>
 		/// <para>-or-</para>
@@ -146,7 +150,7 @@ namespace MimeKit.Cryptography {
 		/// <exception cref="System.IO.IOException">
 		/// An I/O error occurred.
 		/// </exception>
-		public DkimSigner (string fileName, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256) : base (fileName, domain, selector, algorithm)
+		public DkimSigner (string fileName, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter? preFilter = null) : base (fileName, domain, selector, algorithm, preFilter)
 		{
 		}
 
@@ -163,6 +167,7 @@ namespace MimeKit.Cryptography {
 		/// <param name="stream">The stream containing the private key.</param>
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="stream"/> is <see langword="null"/>.</para>
@@ -177,7 +182,7 @@ namespace MimeKit.Cryptography {
 		/// <exception cref="System.IO.IOException">
 		/// An I/O error occurred.
 		/// </exception>
-		public DkimSigner (Stream stream, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256) : base (stream, domain, selector, algorithm)
+		public DkimSigner (Stream stream, string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256, IMimeFilter? preFilter = null) : base (stream, domain, selector, algorithm, preFilter)
 		{
 		}
 
@@ -287,7 +292,7 @@ namespace MimeKit.Cryptography {
 					builder.Append ("; h=");
 					builder.AppendJoin (':', headers);
 
-					hash = message.HashBody (options, SignatureAlgorithm, BodyCanonicalizationAlgorithm, -1);
+					hash = message.HashBody (options, SignatureAlgorithm, BodyCanonicalizationAlgorithm, -1, PreFilter);
 					builder.Append ("; bh=");
 					builder.Append (Convert.ToBase64String (hash));
 					builder.Append ("; b=");

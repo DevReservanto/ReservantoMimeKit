@@ -68,8 +68,8 @@ namespace UnitTests.Cryptography {
 	{
 		//const string ExpiredCertificateMessage = "A required certificate is not within its validity period when verifying against the current system clock or the timestamp in the signed file.\r\n";
 #if NET5_0_OR_GREATER
-		public const string ExpiredCertificateMessage = "Certificate trust could not be established. The first reported error is: A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
-		public const string UntrustedRootCertificateMessage = "Certificate trust could not be established. The first reported error is: A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
+		public const string ExpiredCertificateMessage = "Certificate trust could not be established. The first reported error is: Certifikační řetěz byl zpracován, ale byl ukončen v kořenovém certifikátu, který nemá důvěru zprostředkovatele důvěryhodnosti.";
+		public const string UntrustedRootCertificateMessage = "Certificate trust could not be established. The first reported error is: Certifikační řetěz byl zpracován, ale byl ukončen v kořenovém certifikátu, který nemá důvěru zprostředkovatele důvěryhodnosti.";
 #else
 		public const string ExpiredCertificateMessage = "The certificate is revoked.\r\n";
 		public const string UntrustedRootCertificateMessage = "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.\r\n";
