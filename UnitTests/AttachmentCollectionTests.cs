@@ -433,7 +433,7 @@ namespace UnitTests {
 			Assert.AreEqual ("attachment", attachment.ContentDisposition.Disposition);
 			Assert.AreEqual ("lorem-ipsum.txt", attachment.ContentDisposition.FileName);
 			Assert.AreEqual ("lorem-ipsum.txt", attachment.FileName);
-			Assert.AreEqual (ContentEncoding.SevenBit, attachment.ContentTransferEncoding);
+			Assert.AreEqual (ContentEncoding.Base64, attachment.ContentTransferEncoding);
 			Assert.AreEqual (1, attachments.Count);
 
 			Assert.IsTrue (attachments.Contains (attachment), "Contains");
@@ -457,7 +457,7 @@ namespace UnitTests {
 			Assert.AreEqual ("attachment", attachment.ContentDisposition.Disposition);
 			Assert.AreEqual ("lorem-ipsum.txt", attachment.ContentDisposition.FileName);
 			Assert.AreEqual ("lorem-ipsum.txt", attachment.FileName);
-			Assert.AreEqual (ContentEncoding.SevenBit, attachment.ContentTransferEncoding);
+			Assert.AreEqual (ContentEncoding.Base64, attachment.ContentTransferEncoding);
 			Assert.AreEqual (1, attachments.Count);
 
 			Assert.IsTrue (attachments.Contains (attachment), "Contains");

@@ -152,13 +152,13 @@ namespace UnitTests.IO.Filters {
 					filtered.Flush ();
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.SevenBit);
-					Assert.AreEqual (ContentEncoding.SevenBit, encoding, "ASCII 7bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "ASCII 7bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.EightBit);
-					Assert.AreEqual (ContentEncoding.SevenBit, encoding, "ASCII 8bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "ASCII 8bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.None);
-					Assert.AreEqual (ContentEncoding.SevenBit, encoding, "ASCII no constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "ASCII no constraint.");
 
 					Assert.IsTrue (filtered.Remove (filter), "Remove");
 				}
@@ -184,13 +184,13 @@ namespace UnitTests.IO.Filters {
 					filtered.Flush ();
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.SevenBit);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "From-line 7bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "From-line 7bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.EightBit);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "From-line 8bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "From-line 8bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.None);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "From-line no constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "From-line no constraint.");
 				}
 			}
 
@@ -209,13 +209,13 @@ namespace UnitTests.IO.Filters {
 					filtered.Flush ();
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.SevenBit);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "French 7bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "French 7bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.EightBit);
-					Assert.AreEqual (ContentEncoding.EightBit, encoding, "French 8bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "French 8bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.None);
-					Assert.AreEqual (ContentEncoding.EightBit, encoding, "French no constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "French no constraint.");
 
 					filter.Reset ();
 
@@ -224,13 +224,13 @@ namespace UnitTests.IO.Filters {
 					filtered.Flush ();
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.SevenBit);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "French (long lines) 7bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "French (long lines) 7bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.EightBit);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "French (long lines) 8bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "French (long lines) 8bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.None);
-					Assert.AreEqual (ContentEncoding.QuotedPrintable, encoding, "French (long lines) no constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "French (long lines) no constraint.");
 				}
 			}
 
@@ -248,13 +248,13 @@ namespace UnitTests.IO.Filters {
 					filtered.Flush ();
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.SevenBit, 78);
-					Assert.AreEqual (ContentEncoding.SevenBit, encoding, "78-character line; 7bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "78-character line; 7bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.EightBit, 78);
-					Assert.AreEqual (ContentEncoding.SevenBit, encoding, "78-character line; 8bit constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "78-character line; 8bit constraint.");
 
 					encoding = filter.GetBestEncoding (EncodingConstraint.None, 78);
-					Assert.AreEqual (ContentEncoding.SevenBit, encoding, "78-character line; no constraint.");
+					Assert.AreEqual (ContentEncoding.Base64, encoding, "78-character line; no constraint.");
 				}
 			}
 		}

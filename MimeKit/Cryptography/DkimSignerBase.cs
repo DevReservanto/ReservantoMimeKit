@@ -26,6 +26,7 @@
 
 using System;
 using System.IO;
+using MimeKit.IO.Filters;
 #if ENABLE_NATIVE_DKIM
 using System.Security.Cryptography;
 #endif
@@ -57,12 +58,13 @@ namespace MimeKit.Cryptography {
 		/// <param name="domain">The domain that the signer represents.</param>
 		/// <param name="selector">The selector subdividing the domain.</param>
 		/// <param name="algorithm">The signature algorithm.</param>
+		/// <param name="preFilter">The filter, applied before DKIM signature is created.</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// <para><paramref name="domain"/> is <c>null</c>.</para>
 		/// <para>-or-</para>
 		/// <para><paramref name="selector"/> is <c>null</c>.</para>
 		/// </exception>
-		protected DkimSignerBase (string domain, string selector, DkimSignatureAlgorithm algorithm = DkimSignatureAlgorithm.RsaSha256)
+		protected DkimSignerBase (string domain, string selector, DkimSignatureAlgorithm algorithm, IMimeFilter preFilter)
 		{
 			if (domain == null)
 				throw new ArgumentNullException (nameof (domain));
@@ -73,6 +75,7 @@ namespace MimeKit.Cryptography {
 			SignatureAlgorithm = algorithm;
 			Selector = selector;
 			Domain = domain;
+			PreFilter = preFilter;
 		}
 
 		/// <summary>
@@ -170,6 +173,14 @@ namespace MimeKit.Cryptography {
 		/// <value>The private key.</value>
 		protected AsymmetricKeyParameter PrivateKey {
 			get; set;
+		}
+
+		/// <summary>
+		/// Gets prefilter, which is applied before part of DKIM signature is created.
+		/// This filter runs before all standard filters.
+		/// </summary>
+		public IMimeFilter PreFilter {
+			get; private set;
 		}
 
 		internal static AsymmetricKeyParameter LoadPrivateKey (Stream stream)
