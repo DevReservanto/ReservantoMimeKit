@@ -1,17 +1,17 @@
 # Úpravy
 
-K zaruèení sprváné funkcionality odesílání e-mialù spolu s podpisy DKIM
-máme upraveny (pro úèely Reservanta) následující èásti knihovny.
+K zaručení sprváné funkcionality odesílání e-mialů spolu s podpisy DKIM
+máme upraveny (pro účely Reservanta) následující části knihovny.
 
 1. Zjišťování typu obsahu e-amilu
-+ Zmìna se nachází v metodì `BestEncodingFilter.GetBestEncoding`
++ Změna se nachází v metodě `BestEncodingFilter.GetBestEncoding`
 + Tato metoda byla upravena tak, aby vždy vracela že obsah mailu se má kódovat pomocí **base64**
-2. Možnost pøidání vlastního `PreFilter` k DKIM podpisu
-+ Tøída `DkimSignerBase` pøíjímá v konstruktoru `IMimeFilter` který se používá ještì pøed vytvoøením DKIM podpisu.
+2. Možnost přidání vlastního `PreFilter` k DKIM podpisu
++ Třída `DkimSignerBase` příjímá v konstruktoru `IMimeFilter` který se používá ještě před vytvořením DKIM podpisu.
 3. Unit Testy
 + `FilterTests.TestBestEncodingFilter` úpravy týkající se vracení kódování pomocí **base64**
-+ `SecureMimeTests` úpravy hlášek výjimek na èeské
-+ `DkimTests` upraveny vypoèítané hashe - musíme poèítat s hashy obsahujícími **base64** kódování
++ `SecureMimeTests` úpravy hlášek výjimek na české
++ `DkimTests` upraveny vypočítané hashe - musíme počítat s hashy obsahujícími **base64** kódování
 
 # MimeKit
 
