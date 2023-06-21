@@ -28,7 +28,8 @@ using System.Collections;
 
 using MimeKit;
 
-namespace UnitTests {
+namespace UnitTests
+{
 	[TestFixture]
 	public class AttachmentCollectionTests
 	{
@@ -437,7 +438,7 @@ namespace UnitTests {
 			Assert.That (attachment.ContentDisposition.Disposition, Is.EqualTo ("attachment"));
 			Assert.That (attachment.ContentDisposition.FileName, Is.EqualTo ("lorem-ipsum.txt"));
 			Assert.That (attachment.FileName, Is.EqualTo ("lorem-ipsum.txt"));
-			Assert.That (attachment.ContentTransferEncoding, Is.EqualTo (ContentEncoding.SevenBit));
+			Assert.That (attachment.ContentTransferEncoding, Is.EqualTo (ContentEncoding.Base64));
 			Assert.That (attachments.Count, Is.EqualTo (1));
 
 			Assert.That (attachments.Contains (attachment), Is.True, "Contains");
@@ -461,7 +462,7 @@ namespace UnitTests {
 			Assert.That (attachment.ContentDisposition.Disposition, Is.EqualTo ("attachment"));
 			Assert.That (attachment.ContentDisposition.FileName, Is.EqualTo ("lorem-ipsum.txt"));
 			Assert.That (attachment.FileName, Is.EqualTo ("lorem-ipsum.txt"));
-			Assert.That (attachment.ContentTransferEncoding, Is.EqualTo (ContentEncoding.SevenBit));
+			Assert.That (attachment.ContentTransferEncoding, Is.EqualTo (ContentEncoding.Base64));
 			Assert.That (attachments.Count, Is.EqualTo (1));
 
 			Assert.That (attachments.Contains (attachment), Is.True, "Contains");
