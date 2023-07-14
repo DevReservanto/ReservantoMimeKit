@@ -1,17 +1,17 @@
-# Úpravy
+# Ãšpravy
 
-K zaruèení sprváné funkcionality odesílání e-mialù spolu s podpisy DKIM
-máme upraveny (pro úèely Reservanta) následující èásti knihovny.
+K zaruÄenÃ­ sprvÃ¡nÃ© funkcionality odesÃ­lÃ¡nÃ­ e-mialÅ¯ spolu s podpisy DKIM
+mÃ¡me upraveny (pro ÃºÄely Reservanta) nÃ¡sledujÃ­cÃ­ ÄÃ¡sti knihovny.
 
-1. Zjišování typu obsahu e-amilu
-+ Zmìna se nachází v metodì `BestEncodingFilter.GetBestEncoding`
-+ Tato metoda byla upravena tak, aby vdy vracela e obsah mailu se má kódovat pomocí **base64**
-2. Monost pøidání vlastního `PreFilter` k DKIM podpisu
-+ Tøída `DkimSignerBase` pøíjímá v konstruktoru `IMimeFilter` kterı se pouívá ještì pøed vytvoøením DKIM podpisu.
+1. ZjiÅ¡Å¥ovÃ¡nÃ­ typu obsahu e-amilu
++ ZmÄ›na se nachÃ¡zÃ­ v metodÄ› `BestEncodingFilter.GetBestEncoding`
++ Tato metoda byla upravena tak, aby vÅ¾dy vracela Å¾e obsah mailu se mÃ¡ kÃ³dovat pomocÃ­ **base64**
+2. MoÅ¾nost pÅ™idÃ¡nÃ­ vlastnÃ­ho `PreFilter` k DKIM podpisu
++ TÅ™Ã­da `DkimSignerBase` pÅ™Ã­jÃ­mÃ¡ v konstruktoru `IMimeFilter` kterÃ½ se pouÅ¾Ã­vÃ¡ jeÅ¡tÄ› pÅ™ed vytvoÅ™enÃ­m DKIM podpisu.
 3. Unit Testy
-+ `FilterTests.TestBestEncodingFilter` úpravy tıkající se vracení kódování pomocí **base64**
-+ `SecureMimeTests` úpravy hlášek vıjimek na èeské
-+ `DkimTests` upraveny vypoèítané hashe - musíme poèítat s hashy obsahujícími **base64** kódování
++ `FilterTests.TestBestEncodingFilter` Ãºpravy tÃ½kajÃ­cÃ­ se vracenÃ­ kÃ³dovÃ¡nÃ­ pomocÃ­ **base64**
++ `SecureMimeTests` Ãºpravy hlÃ¡Å¡ek vÃ½jimek na ÄeskÃ©
++ `DkimTests` upraveny vypoÄÃ­tanÃ© hashe - musÃ­me poÄÃ­tat s hashy obsahujÃ­cÃ­mi **base64** kÃ³dovÃ¡nÃ­
 
 # MimeKit
 
