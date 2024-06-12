@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 
 using MimeKit.IO;
+using MimeKit.Text;
 using MimeKit.Utils;
 using MimeKit.Encodings;
 
@@ -62,7 +63,7 @@ namespace MimeKit {
 	/// inter-related MIME parts which typically reference each other via URIs based on the Content-Id and/or
 	/// Content-Location headers.</para>
 	/// </remarks>
-	public class Multipart : MimeEntity, ICollection<MimeEntity>, IList<MimeEntity>
+	public class Multipart : MimeEntity, IMultipart
 	{
 		readonly List<MimeEntity> children;
 		string preamble, epilogue;
@@ -341,6 +342,51 @@ namespace MimeKit {
 			CheckDisposed ();
 
 			visitor.VisitMultipart (this);
+		}
+
+		/// <summary>
+		/// Get the preferred message body if it exists.
+		/// </summary>
+		/// <remarks>
+		/// Gets the preferred message body if it exists.
+		/// </remarks>
+		/// <param name="format">The preferred text format.</param>
+		/// <param name="body">The MIME part containing the message body in the preferred text format.</param>
+		/// <returns><c>true</c> if the body part is found; otherwise, <c>false</c>.</returns>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The <see cref="Multipart"/> has been disposed.
+		/// </exception>
+		public virtual bool TryGetValue (TextFormat format, out TextPart body)
+		{
+			CheckDisposed ();
+
+			for (int i = 0; i < Count; i++) {
+				// Descend into nested multiparts if there are any...
+				if (this[i] is Multipart multipart) {
+					if (multipart.TryGetValue (format, out body))
+						return true;
+
+					// The text body should never come after a multipart.
+					break;
+				}
+
+				// Look for the first non-attachment text part (realistically, the body text will
+				// precede any attachments, but I'm not sure we can rely on that assumption).
+				if (this[i] is TextPart text && !text.IsAttachment) {
+					if (text.IsFormat (format)) {
+						body = text;
+						return true;
+					}
+
+					// Note: the first text/* part in a multipart/mixed is the text body.
+					// If it's not in the format we're looking for, then it doesn't exist.
+					break;
+				}
+			}
+
+			body = null;
+
+			return false;
 		}
 
 		internal static string FoldPreambleOrEpilogue (FormatOptions options, string text, bool isEpilogue)

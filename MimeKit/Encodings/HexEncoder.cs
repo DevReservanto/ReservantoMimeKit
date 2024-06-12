@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,7 @@ namespace MimeKit.Encodings {
 	/// </remarks>
 	public class HexEncoder : IMimeEncoder
 	{
-		static ReadOnlySpan<byte> hex_alphabet => new byte[16] {
-			0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, // '0' -> '7'
-			0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, // '8' -> 'F'
-		};
+		static ReadOnlySpan<byte> hex_alphabet => "0123456789ABCDEF"u8;
 
 		/// <summary>
 		/// Initialize a new instance of the <see cref="HexEncoder"/> class.

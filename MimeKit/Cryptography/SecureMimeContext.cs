@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ namespace MimeKit.Cryptography {
 	/// directly, but rather via higher level APIs such as <see cref="MultipartSigned"/>
 	/// and <see cref="ApplicationPkcs7Mime"/>.
 	/// </remarks>
-	public abstract class SecureMimeContext : CryptographyContext
+	public abstract class SecureMimeContext : CryptographyContext, ISecureMimeContext
 	{
 		static readonly string[] ProtocolSubtypes = { "pkcs7-signature", "pkcs7-mime", "pkcs7-keys", "x-pkcs7-signature", "x-pkcs7-mime", "x-pkcs7-keys" };
 		internal const X509KeyUsageFlags DigitalSignatureKeyUsageFlags = X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation;

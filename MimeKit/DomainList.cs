@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ namespace MimeKit {
 	public class DomainList : IList<string>
 	{
 		readonly static byte[] DomainSentinels = new [] { (byte) ',', (byte) ':' };
-		readonly List<string> domains;
+		IList<string> domains;
 
 		/// <summary>
 		/// Initialize a new instance of the <see cref="DomainList"/> class.
@@ -70,7 +70,13 @@ namespace MimeKit {
 		/// </remarks>
 		public DomainList ()
 		{
-			domains = new List<string> ();
+			domains = Array.Empty<string> ();
+		}
+
+		void EnsureAllocated ()
+		{
+			if (domains == Array.Empty<string> ())
+				domains = new List<string> ();
 		}
 
 		#region IList implementation
@@ -113,6 +119,7 @@ namespace MimeKit {
 			if (domain is null)
 				throw new ArgumentNullException (nameof (domain));
 
+			EnsureAllocated ();
 			domains.Insert (index, domain);
 			OnChanged ();
 		}
@@ -180,6 +187,7 @@ namespace MimeKit {
 			if (domain is null)
 				throw new ArgumentNullException (nameof (domain));
 
+			EnsureAllocated ();
 			domains.Add (domain);
 			OnChanged ();
 		}

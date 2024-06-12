@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -69,8 +69,10 @@ namespace MimeKit.IO.Filters {
 			}
 
 			if (flush && ensureNewLine && pc != (byte) '\n') {
-				output[outputIndex++] = (byte) '\r';
+				if (pc != (byte) '\r')
+					output[outputIndex++] = (byte) '\r';
 				output[outputIndex++] = (byte) '\n';
+				pc = (byte) '\n';
 			}
 
 			return outputIndex;

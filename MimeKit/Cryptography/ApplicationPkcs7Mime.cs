@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ namespace MimeKit.Cryptography {
 	/// An application/pkcs7-mime is an S/MIME part and may contain encrypted,
 	/// signed or compressed data (or any combination of the above).
 	/// </remarks>
-	public class ApplicationPkcs7Mime : MimePart
+	public class ApplicationPkcs7Mime : MimePart, IApplicationPkcs7Mime
 	{
 		/// <summary>
 		/// Initialize a new instance of the <see cref="ApplicationPkcs7Mime"/> class.
@@ -628,7 +628,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				if (doAsync)
@@ -805,7 +805,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				entity.WriteTo (options, memory, cancellationToken);
@@ -854,7 +854,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				await entity.WriteToAsync (options, memory, cancellationToken).ConfigureAwait (false);
@@ -981,7 +981,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				entity.WriteTo (options, memory, cancellationToken);
@@ -1036,7 +1036,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				await entity.WriteToAsync (options, memory, cancellationToken).ConfigureAwait (false);
@@ -1173,7 +1173,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				entity.WriteTo (options, memory, cancellationToken);
@@ -1226,7 +1226,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				await entity.WriteToAsync (options, memory, cancellationToken).ConfigureAwait (false);
@@ -1363,7 +1363,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				entity.WriteTo (options, memory, cancellationToken);
@@ -1420,7 +1420,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				await entity.WriteToAsync (options, memory, cancellationToken).ConfigureAwait (false);

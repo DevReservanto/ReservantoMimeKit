@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using MimeKit.Utils;
 using MimeKit.Cryptography;
@@ -190,7 +191,7 @@ namespace MimeKit {
 				throw new ArgumentException ("Header field names are not allowed to be empty.", nameof (field));
 
 			for (int i = 0; i < field.Length; i++) {
-				if (field[i] >= 127 || !IsAsciiAtom ((byte) field[i]))
+				if (field[i] >= 127 || !IsFieldText ((byte) field[i]))
 					throw new ArgumentException ("Illegal characters in header field name.", nameof (field));
 			}
 
@@ -242,7 +243,7 @@ namespace MimeKit {
 				throw new ArgumentException ("Header field names are not allowed to be empty.", nameof (field));
 
 			for (int i = 0; i < field.Length; i++) {
-				if (field[i] >= 127 || !IsAsciiAtom ((byte) field[i]))
+				if (field[i] >= 127 || !IsFieldText ((byte) field[i]))
 					throw new ArgumentException ("Illegal characters in header field name.", nameof (field));
 			}
 
@@ -676,7 +677,7 @@ namespace MimeKit {
 		{
 			var tokens = new List<ReceivedTokenValue> ();
 			var rawValue = encoding.GetBytes (value);
-			var encoded = new ValueStringBuilder (128);
+			var encoded = new ValueStringBuilder (rawValue.Length);
 			int lineLength = field.Length + 1;
 			bool date = false;
 			int index = 0;
@@ -824,7 +825,7 @@ namespace MimeKit {
 
 		static byte[] EncodeDkimOrArcSignatureHeader (ParserOptions options, FormatOptions format, Encoding encoding, string field, string value)
 		{
-			var encoded = new ValueStringBuilder (128);
+			var encoded = new ValueStringBuilder (value.Length);
 			int lineLength = field.Length + 1;
 			int index = 0;
 
@@ -883,9 +884,58 @@ namespace MimeKit {
 			return encoding.GetBytes (encoded.ToString ());
 		}
 
+		static byte[] EncodeDispositionNotificationOptions (ParserOptions options, FormatOptions format, Encoding encoding, string field, string value)
+		{
+			var encoded = new ValueStringBuilder (value.Length);
+			int lineLength = field.Length + 1;
+			int index = 0;
+
+			while (index < value.Length) {
+				using var parameter = new ValueStringBuilder (128);
+
+				while (index < value.Length && IsWhiteSpace (value[index]))
+					index++;
+
+				int startIndex = index;
+
+				while (index < value.Length && value[index] != '=') {
+					if (!IsWhiteSpace (value[index]))
+						parameter.Append (value[index]);
+					index++;
+				}
+
+				while (index < value.Length && value[index] != ';') {
+					if (!IsWhiteSpace (value[index]))
+						parameter.Append (value[index]);
+					index++;
+				}
+
+				if (index < value.Length && value[index] == ';') {
+					parameter.Append (';');
+					index++;
+				}
+
+				if (lineLength + parameter.Length + 1 > format.MaxLineLength && encoded.Length > 0) {
+					encoded.Append (format.NewLine);
+					encoded.Append ('\t');
+					lineLength = 1;
+				} else {
+					encoded.Append (' ');
+					lineLength++;
+				}
+
+				encoded.Append (parameter.AsSpan ());
+				lineLength += parameter.Length;
+			}
+
+			encoded.Append (format.NewLine);
+
+			return encoding.GetBytes (encoded.ToString ());
+		}
+
 		static byte[] EncodeReferencesHeader (ParserOptions options, FormatOptions format, Encoding encoding, string field, string value)
 		{
-			var encoded = new ValueStringBuilder (128);
+			var encoded = new ValueStringBuilder (value.Length);
 			int lineLength = field.Length + 1;
 			int count = 0;
 
@@ -914,7 +964,7 @@ namespace MimeKit {
 
 		static bool IsWhiteSpace (char c)
 		{
-			return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+			return c is ' ' or '\t' or '\r' or '\n';
 		}
 
 		readonly struct Word
@@ -1173,12 +1223,12 @@ namespace MimeKit {
 
 		static bool IsMailingListCommandSpecial (char c)
 		{
-			return c == '<' || c == '(' || c == ',';
+			return c is '<' or '(' or ',';
 		}
 
 		static byte[] EncodeMailingListCommandHeader (ParserOptions options, FormatOptions format, Encoding encoding, string field, string value)
 		{
-			var encoded = new ValueStringBuilder (128);
+			var encoded = new ValueStringBuilder (value.Length);
 			int lineLength = field.Length + 1;
 			int index = 0;
 
@@ -1308,6 +1358,8 @@ namespace MimeKit {
 				return EncodeContentDisposition (Options, format, encoding, Field, value);
 			case HeaderId.ContentType:
 				return EncodeContentType (Options, format, encoding, Field, value);
+			case HeaderId.DispositionNotificationOptions:
+				return EncodeDispositionNotificationOptions (Options, format, encoding, Field, value);
 			case HeaderId.ArcAuthenticationResults:
 			case HeaderId.AuthenticationResults:
 				return EncodeAuthenticationResultsHeader (Options, format, encoding, Field, value);
@@ -1361,6 +1413,8 @@ namespace MimeKit {
 					return ReformatContentDisposition (Options, format, CharsetUtils.UTF8, Field, rawValue);
 				case HeaderId.ContentType:
 					return ReformatContentType (Options, format, CharsetUtils.UTF8, Field, rawValue);
+				case HeaderId.DispositionNotificationOptions:
+					return rawValue;
 				case HeaderId.ArcAuthenticationResults:
 				case HeaderId.AuthenticationResults:
 					// Note: No text that can be internationalized.
@@ -1608,16 +1662,19 @@ namespace MimeKit {
 			return chars.Slice (0, count).ToString ();
 		}
 
-		static bool IsAsciiAtom (byte c)
+		[MethodImpl (MethodImplOptions.AggressiveInlining)]
+		static bool IsFieldText (byte c)
 		{
-			return c.IsAsciiAtom ();
+			return c.IsFieldText ();
 		}
 
+		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		static bool IsControl (byte c)
 		{
 			return c.IsCtrl ();
 		}
 
+		[MethodImpl (MethodImplOptions.AggressiveInlining)]
 		static bool IsBlank (byte c)
 		{
 			return c.IsBlank ();
@@ -1631,13 +1688,8 @@ namespace MimeKit {
 			var invalid = false;
 
 			// find the end of the field name
-			if (strict) {
-				while (inptr < inend && IsAsciiAtom (*inptr))
-					inptr++;
-			} else {
-				while (inptr < inend && *inptr != (byte) ':' && !IsControl (*inptr))
-					inptr++;
-			}
+			while (inptr < inend && IsFieldText (*inptr))
+				inptr++;
 
 			while (inptr < inend && IsBlank (*inptr))
 				inptr++;

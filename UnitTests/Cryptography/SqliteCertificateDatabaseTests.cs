@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,23 +43,22 @@ namespace UnitTests.Cryptography {
 
 		public SqliteCertificateDatabaseTests ()
 		{
+			var rsa = SecureMimeTestsBase.SupportedCertificates.FirstOrDefault (c => c.PublicKeyAlgorithm == PublicKeyAlgorithm.RsaGeneral);
 			dataDir = Path.Combine (TestHelper.ProjectDir, "TestData", "smime");
-			var path = Path.Combine (dataDir, "smime.pfx");
 
 			if (File.Exists ("sqlite.db"))
 				File.Delete ("sqlite.db");
 
-			chain = SecureMimeTestsBase.LoadPkcs12CertificateChain (path, "no.secret");
+			chain = rsa.Chain;
 
 			using (var ctx = new DefaultSecureMimeContext ("sqlite.db", "no.secret")) {
 				foreach (var filename in StartComCertificates) {
-					path = Path.Combine (dataDir, filename);
+					var path = Path.Combine (dataDir, filename);
 					using (var stream = File.OpenRead (path))
 						ctx.Import (stream, true);
 				}
 
-				path = Path.Combine (dataDir, "smime.pfx");
-				ctx.Import (path, "no.secret");
+				ctx.Import (rsa.FileName, "no.secret");
 			}
 		}
 
@@ -94,7 +93,7 @@ namespace UnitTests.Cryptography {
 					}
 				}
 
-				Assert.IsTrue (trustedAnchor, "Did not find the MimeKit UnitTests trusted anchor");
+				Assert.That (trustedAnchor, Is.True, "Did not find the MimeKit UnitTests trusted anchor");
 			}
 		}
 
@@ -110,7 +109,7 @@ namespace UnitTests.Cryptography {
 					}
 				}
 
-				Assert.IsTrue (found, "Did not find the expected certificate");
+				Assert.That (found, Is.True, "Did not find the expected certificate");
 			}
 		}
 

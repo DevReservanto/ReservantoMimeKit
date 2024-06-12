@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -78,15 +78,15 @@ namespace UnitTests.Cryptography {
 						var certificate2 = certificate.AsX509Certificate2 ();
 						var certificate1 = certificate2.AsBouncyCastleCertificate ();
 
-						Assert.AreEqual (certificate2.Thumbprint, certificate1.GetFingerprint ().ToUpperInvariant (), "Fingerprint");
-						Assert.AreEqual (certificate2.GetNameInfo (X509NameType.EmailName, true), certificate1.GetIssuerNameInfo (X509Name.EmailAddress), "Issuer Email");
-						Assert.AreEqual (certificate2.GetNameInfo (X509NameType.EmailName, false), certificate1.GetSubjectEmailAddress (), "Subject Email");
-						Assert.AreEqual (certificate2.GetNameInfo (X509NameType.SimpleName, false), certificate1.GetCommonName (), "Common Name");
+						Assert.That (certificate1.GetFingerprint ().ToUpperInvariant (), Is.EqualTo (certificate2.Thumbprint), "Fingerprint");
+						Assert.That (certificate1.GetIssuerNameInfo (X509Name.EmailAddress), Is.EqualTo (certificate2.GetNameInfo (X509NameType.EmailName, true)), "Issuer Email");
+						Assert.That (certificate1.GetSubjectEmailAddress (), Is.EqualTo (certificate2.GetNameInfo (X509NameType.EmailName, false)), "Subject Email");
+						Assert.That (certificate1.GetCommonName (), Is.EqualTo (certificate2.GetNameInfo (X509NameType.SimpleName, false)), "Common Name");
 
 						var usage2 = GetX509Certificate2KeyUsageFlags (certificate2);
 						var usage1 = certificate1.GetKeyUsageFlags ();
 
-						Assert.AreEqual (usage2, usage1, "KeyUsageFlags");
+						Assert.That (usage1, Is.EqualTo (usage2), "KeyUsageFlags");
 					}
 				}
 			}

@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ namespace MimeKit {
 	/// <example>
 	/// <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
 	/// </example>
-	public class MimePart : MimeEntity
+	public class MimePart : MimeEntity, IMimePart
 	{
 		static readonly string[] ContentTransferEncodings = {
 			null, "7bit", "8bit", "binary", "base64", "quoted-printable", "x-uuencode"
@@ -419,15 +419,13 @@ namespace MimeKit {
 				if (ContentDisposition != null)
 					filename = ContentDisposition.FileName;
 
-				if (filename is null)
-					filename = ContentType.Name;
+				filename ??= ContentType.Name;
 
 				return filename?.Trim ();
 			}
 			set {
 				if (value != null) {
-					if (ContentDisposition is null)
-						ContentDisposition = new ContentDisposition (ContentDisposition.Attachment);
+					ContentDisposition ??= new ContentDisposition (ContentDisposition.Attachment);
 					ContentDisposition.FileName = value;
 				} else if (ContentDisposition != null) {
 					ContentDisposition.FileName = value;
@@ -721,7 +719,7 @@ namespace MimeKit {
 				}
 
 				if (ContentTransferEncoding == ContentEncoding.UUEncode) {
-					var buffer = Encoding.ASCII.GetBytes ("end");
+					var buffer = "end"u8.ToArray ();
 
 					if (cancellable != null) {
 						cancellable.Write (buffer, 0, buffer.Length, cancellationToken);
@@ -805,7 +803,7 @@ namespace MimeKit {
 				}
 
 				if (ContentTransferEncoding == ContentEncoding.UUEncode) {
-					var buffer = Encoding.ASCII.GetBytes ("end");
+					var buffer = "end"u8.ToArray();
 
 					await stream.WriteAsync (buffer, 0, buffer.Length, cancellationToken).ConfigureAwait (false);
 					await stream.WriteAsync (options.NewLineBytes, 0, options.NewLineBytes.Length, cancellationToken).ConfigureAwait (false);

@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ namespace UnitTests.Cryptography {
 		[Test]
 		public void TestArgumentExceptions ()
 		{
-			var signer = new CmsSigner (Path.Combine (TestHelper.ProjectDir, "TestData", "smime", "smime.pfx"), "no.secret");
+			var rsa = SecureMimeTestsBase.SupportedCertificates.FirstOrDefault (c => c.PublicKeyAlgorithm == PublicKeyAlgorithm.RsaGeneral);
+			var signer = new CmsSigner (rsa.FileName, "no.secret");
 			AsymmetricCipherKeyPair keyPair;
 
 			using (var stream = new StreamReader (Path.Combine (TestHelper.ProjectDir, "TestData", "dkim", "example.pem"))) {
@@ -55,22 +56,23 @@ namespace UnitTests.Cryptography {
 
 		static void AssertCertificateProperties (X509CertificateRecord record, X509Certificate certificate)
 		{
-			Assert.AreEqual (certificate.GetBasicConstraints (), record.BasicConstraints, "BasicConstraints");
-			Assert.AreEqual (certificate.IsSelfSigned (), record.IsAnchor, "IsAnchor");
-			Assert.AreEqual (certificate.GetKeyUsageFlags (), record.KeyUsage, "KeyUsage");
-			Assert.AreEqual (certificate.NotBefore.ToUniversalTime (), record.NotBefore, "NotBefore");
-			Assert.AreEqual (certificate.NotAfter.ToUniversalTime (), record.NotAfter, "NotAfter");
-			Assert.AreEqual (certificate.IssuerDN.ToString (), record.IssuerName, "IssuerName");
-			Assert.AreEqual (certificate.SerialNumber.ToString (), record.SerialNumber, "SerialNumber");
-			Assert.AreEqual (certificate.SubjectDN.ToString (), record.SubjectName, "SubjectName");
-			Assert.AreEqual (certificate.GetSubjectEmailAddress (), record.SubjectEmail, "SubjectEmail");
-			Assert.AreEqual (certificate.GetFingerprint (), record.Fingerprint, "Fingerprint");
+			Assert.That (record.BasicConstraints, Is.EqualTo (certificate.GetBasicConstraints ()), "BasicConstraints");
+			Assert.That (record.IsAnchor, Is.EqualTo (certificate.IsSelfSigned ()), "IsAnchor");
+			Assert.That (record.KeyUsage, Is.EqualTo (certificate.GetKeyUsageFlags ()), "KeyUsage");
+			Assert.That (record.NotBefore, Is.EqualTo (certificate.NotBefore.ToUniversalTime ()), "NotBefore");
+			Assert.That (record.NotAfter, Is.EqualTo (certificate.NotAfter.ToUniversalTime ()), "NotAfter");
+			Assert.That (record.IssuerName, Is.EqualTo (certificate.IssuerDN.ToString ()), "IssuerName");
+			Assert.That (record.SerialNumber, Is.EqualTo (certificate.SerialNumber.ToString ()), "SerialNumber");
+			Assert.That (record.SubjectName, Is.EqualTo (certificate.SubjectDN.ToString ()), "SubjectName");
+			Assert.That (record.SubjectEmail, Is.EqualTo (certificate.GetSubjectEmailAddress ()), "SubjectEmail");
+			Assert.That (record.Fingerprint, Is.EqualTo (certificate.GetFingerprint ()), "Fingerprint");
 		}
 
 		[Test]
 		public void TestDefaultValues ()
 		{
-			var signer = new CmsSigner (Path.Combine (TestHelper.ProjectDir, "TestData", "smime", "smime.pfx"), "no.secret");
+			var rsa = SecureMimeTestsBase.SupportedCertificates.FirstOrDefault (c => c.PublicKeyAlgorithm == PublicKeyAlgorithm.RsaGeneral);
+			var signer = new CmsSigner (rsa.FileName, "no.secret");
 			AsymmetricCipherKeyPair keyPair;
 			X509CertificateRecord record;
 
@@ -82,22 +84,22 @@ namespace UnitTests.Cryptography {
 
 			record = new X509CertificateRecord ();
 
-			Assert.IsFalse (record.IsTrusted, "IsTrusted #1");
-			Assert.AreEqual (DateTime.MinValue, record.AlgorithmsUpdated, "AlgorithmsUpdated #1");
+			Assert.That (record.IsTrusted, Is.False, "IsTrusted #1");
+			Assert.That (record.AlgorithmsUpdated, Is.EqualTo (DateTime.MinValue), "AlgorithmsUpdated #1");
 
 			record = new X509CertificateRecord (signer.Certificate);
 
-			Assert.IsFalse (record.IsTrusted, "IsTrusted #2");
-			Assert.AreEqual (signer.Certificate, record.Certificate, "Certificate #2");
-			Assert.AreEqual (DateTime.MinValue, record.AlgorithmsUpdated, "AlgorithmsUpdated #2");
+			Assert.That (record.IsTrusted, Is.False, "IsTrusted #2");
+			Assert.That (record.Certificate, Is.EqualTo (signer.Certificate), "Certificate #2");
+			Assert.That (record.AlgorithmsUpdated, Is.EqualTo (DateTime.MinValue), "AlgorithmsUpdated #2");
 			AssertCertificateProperties (record, signer.Certificate);
 
 			record = new X509CertificateRecord (signer.Certificate, signer.PrivateKey);
 
-			Assert.IsFalse (record.IsTrusted, "IsTrusted #3");
-			Assert.AreEqual (signer.PrivateKey, record.PrivateKey, "PrivateKey #3");
-			Assert.AreEqual (signer.Certificate, record.Certificate, "Certificate #3");
-			Assert.AreEqual (DateTime.MinValue, record.AlgorithmsUpdated, "AlgorithmsUpdated #3");
+			Assert.That (record.IsTrusted, Is.False, "IsTrusted #3");
+			Assert.That (record.PrivateKey, Is.EqualTo (signer.PrivateKey), "PrivateKey #3");
+			Assert.That (record.Certificate, Is.EqualTo (signer.Certificate), "Certificate #3");
+			Assert.That (record.AlgorithmsUpdated, Is.EqualTo (DateTime.MinValue), "AlgorithmsUpdated #3");
 			AssertCertificateProperties (record, signer.Certificate);
 		}
 	}

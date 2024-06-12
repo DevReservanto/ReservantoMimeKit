@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -312,19 +312,41 @@ namespace MimeKit {
 			localpart = null;
 
 			do {
-				if (!text[index].IsAtom () && text[index] != (byte) '"') {
+				bool escapedAt = false;
+				int start = index;
+
+				if (text[index] == (byte) '"') {
+					if (!ParseUtils.SkipQuoted (text, ref index, endIndex, throwOnError))
+						return false;
+				} else if (text[index].IsAtom ()) {
+					if (!ParseUtils.SkipAtom (text, ref index, endIndex))
+						return false;
+
+					if (compliance == RfcComplianceMode.Looser) {
+						// Allow local-parts that include escaped '@' symbols.
+						// See https://github.com/jstedfast/MimeKit/issues/1043 for details.
+						while (index + 1 < endIndex && text[index] == (byte) '\\' && text[index + 1] == (byte) '@') {
+							// track that we've encountered an escaped @ symbol
+							escapedAt = true;
+
+							// skip over the '\\' and '@' characters
+							index += 2;
+
+							if (!ParseUtils.SkipAtom (text, ref index, endIndex))
+								break;
+						}
+					}
+				} else {
 					if (throwOnError)
 						throw new ParseException (string.Format (CultureInfo.InvariantCulture, "Invalid local-part at offset {0}", startIndex), startIndex, index);
 
 					return false;
 				}
 
-				int start = index;
-				if (!ParseUtils.SkipWord (text, ref index, endIndex, throwOnError))
-					return false;
+				string word;
 
 				try {
-					token.Append (CharsetUtils.UTF8.GetString (text, start, index - start));
+					word = CharsetUtils.UTF8.GetString (text, start, index - start);
 				} catch (DecoderFallbackException ex) {
 					if (compliance == RfcComplianceMode.Strict) {
 						if (throwOnError)
@@ -333,8 +355,13 @@ namespace MimeKit {
 						return false;
 					}
 
-					token.Append (CharsetUtils.Latin1.GetString (text, start, index - start));
+					word = CharsetUtils.Latin1.GetString (text, start, index - start);
 				}
+
+				if (escapedAt)
+					word = word.Replace ("\\@", "%40");
+
+				token.Append (word);
 
 				int cfws = index;
 				if (!ParseUtils.SkipCommentsAndWhiteSpace (text, ref index, endIndex, throwOnError))
@@ -367,13 +394,10 @@ namespace MimeKit {
 
 			localpart = token.ToString ();
 
-			if (ParseUtils.IsIdnEncoded (localpart))
-				localpart = MailboxAddress.IdnMapping.Decode (localpart);
-
 			return true;
 		}
 
-		static ReadOnlySpan<byte> CommaGreaterThanOrSemiColon => new[] { (byte) ',', (byte) '>', (byte) ';' };
+		static ReadOnlySpan<byte> CommaGreaterThanOrSemiColon => ",>;"u8;
 
 		internal static bool TryParseAddrspec (byte[] text, ref int index, int endIndex, ReadOnlySpan<byte> sentinels, RfcComplianceMode compliance, bool throwOnError, out string addrspec, out int at)
 		{
@@ -429,14 +453,8 @@ namespace MimeKit {
 
 		internal static bool TryParseMailbox (ParserOptions options, byte[] text, int startIndex, ref int index, int endIndex, string name, int codepage, bool throwOnError, out InternetAddress address)
 		{
+			var encoding = CharsetUtils.GetEncodingOrDefault (codepage, Encoding.UTF8);
 			DomainList route = null;
-			Encoding encoding;
-
-			try {
-				encoding = Encoding.GetEncoding (codepage);
-			} catch {
-				encoding = Encoding.UTF8;
-			}
 
 			address = null;
 
@@ -544,14 +562,8 @@ namespace MimeKit {
 
 		static bool TryParseGroup (AddressParserFlags flags, ParserOptions options, byte[] text, int startIndex, ref int index, int endIndex, int groupDepth, string name, int codepage, out InternetAddress address)
 		{
+			var encoding = CharsetUtils.GetEncodingOrDefault (codepage, Encoding.UTF8);
 			bool throwOnError = (flags & AddressParserFlags.ThrowOnError) != 0;
-			Encoding encoding;
-
-			try {
-				encoding = Encoding.GetEncoding (codepage);
-			} catch {
-				encoding = Encoding.UTF8;
-			}
 
 			// skip over the ':'
 			index++;

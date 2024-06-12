@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -172,12 +172,22 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (certificate));
 
 #if NET6_0_OR_GREATER
-			AsymmetricAlgorithm privateKey;
+			AsymmetricAlgorithm privateKey = null;
 
-			privateKey = certificate.GetRSAPrivateKey ();
-			privateKey ??= certificate.GetDSAPrivateKey ();
-			privateKey ??= certificate.GetECDsaPrivateKey ();
-			privateKey ??= certificate.GetECDiffieHellmanPrivateKey ();
+			if (certificate.HasPrivateKey) {
+				switch (GetPublicKeyAlgorithm (certificate)) {
+				case PublicKeyAlgorithm.Dsa:
+					privateKey = certificate.GetDSAPrivateKey ();
+					break;
+				case PublicKeyAlgorithm.RsaGeneral:
+					privateKey = certificate.GetRSAPrivateKey ();
+					break;
+				case PublicKeyAlgorithm.EllipticCurve:
+					//privateKey = certificate.GetECDsaPrivateKey ();
+					privateKey = certificate.GetECDiffieHellmanPrivateKey ();
+					break;
+				}
+			}
 
 			return privateKey?.AsAsymmetricKeyParameter ();
 #else

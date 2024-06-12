@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ using System;
 using System.IO;
 using System.Linq;
 
+using MimeKit.Text;
 using MimeKit.Utils;
 
 namespace MimeKit {
@@ -41,7 +42,7 @@ namespace MimeKit {
 	/// <example>
 	/// <code language="c#" source="Examples\MimeVisitorExamples.cs" region="HtmlPreviewVisitor" />
 	/// </example>
-	public class MultipartRelated : Multipart
+	public class MultipartRelated : Multipart, IMultipartRelated
 	{
 		/// <summary>
 		/// Initialize a new instance of the <see cref="MultipartRelated"/> class.
@@ -215,6 +216,39 @@ namespace MimeKit {
 		}
 
 		/// <summary>
+		/// Get the preferred message body if it exists.
+		/// </summary>
+		/// <remarks>
+		/// Gets the preferred message body if it exists.
+		/// </remarks>
+		/// <param name="format">The preferred text format.</param>
+		/// <param name="body">The MIME part containing the message body in the preferred text format.</param>
+		/// <returns><c>true</c> if the body part is found; otherwise, <c>false</c>.</returns>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The <see cref="Multipart"/> has been disposed.
+		/// </exception>
+		public override bool TryGetValue (TextFormat format, out TextPart body)
+		{
+			CheckDisposed ();
+
+			// Note: If the multipart/related root document is HTML, then this is the droid we are looking for.
+			var root = Root;
+
+			if (root is TextPart text) {
+				body = text.IsFormat (format) ? text : null;
+				return body != null;
+			}
+
+			// The root may be a multipart such as a multipart/alternative.
+			if (root is Multipart multipart)
+				return multipart.TryGetValue (format, out body);
+
+			body = null;
+
+			return false;
+		}
+
+		/// <summary>
 		/// Check if the <see cref="MultipartRelated"/> contains a part matching the specified URI.
 		/// </summary>
 		/// <remarks>
@@ -363,7 +397,7 @@ namespace MimeKit {
 			if (index == -1)
 				throw new FileNotFoundException ();
 
-			if (!(this[index] is MimePart part) || part.Content is null)
+			if (this[index] is not MimePart part || part.Content is null)
 				throw new FileNotFoundException ();
 
 			return part.Content.Open ();

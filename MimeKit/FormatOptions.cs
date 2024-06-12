@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -142,7 +142,7 @@ namespace MimeKit {
 				if (this == Default)
 					throw new InvalidOperationException ("The default formatting options cannot be changed.");
 
-				switch (newLineFormat) {
+				switch (value) {
 				case NewLineFormat.Unix:
 				case NewLineFormat.Dos:
 					newLineFormat = value;
@@ -371,20 +371,6 @@ namespace MimeKit {
 				verifyingSignature = verifyingSignature,
 				international = international
 			};
-		}
-
-		/// <summary>
-		/// Get the default formatting options in a thread-safe way.
-		/// </summary>
-		/// <remarks>
-		/// Gets the default formatting options in a thread-safe way.
-		/// </remarks>
-		/// <returns>The default formatting options.</returns>
-		internal static FormatOptions CloneDefault ()
-		{
-			lock (Default) {
-				return Default.Clone ();
-			}
 		}
 	}
 }

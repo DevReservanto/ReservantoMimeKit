@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ namespace MimeKit.Cryptography {
 	/// <remarks>
 	/// This mime-type is common when dealing with PGP/MIME but is not used for S/MIME.
 	/// </remarks>
-	public class MultipartEncrypted : Multipart
+	public class MultipartEncrypted : Multipart, IMultipartEncrypted
 	{
 		/// <summary>
 		/// Initialize a new instance of the <see cref="MultipartEncrypted"/> class.
@@ -130,7 +130,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				if (doAsync)
@@ -277,7 +277,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				if (doAsync)
@@ -642,7 +642,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				if (doAsync)
@@ -789,7 +789,7 @@ namespace MimeKit.Cryptography {
 				throw new ArgumentNullException (nameof (entity));
 
 			using (var memory = new MemoryBlockStream ()) {
-				var options = FormatOptions.CloneDefault ();
+				var options = FormatOptions.Default.Clone ();
 				options.NewLineFormat = NewLineFormat.Dos;
 
 				if (doAsync)

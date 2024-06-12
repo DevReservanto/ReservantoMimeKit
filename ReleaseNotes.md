@@ -1,5 +1,65 @@
 # Release Notes
 
+## MimeKit 4.6.0 (2024-05-17)
+
+* Fixed hex format specifier for PGP keyserver lookup. (issue [#1028](https://github.com/jstedfast/MimeKit/issues/1028))
+* Bumped the BouncyCastle.Cryptography dependency to v2.3.1 to fix some security issues.
+* Fixed a bug in conversion logic between BouncyCastle DSA key parameters and System.Security.Cryptography's DSA implementation.
+
+## MimeKit 4.5.0 (2024-04-13)
+
+* Fixed MailboxAddress to not use punycode to encode or decode the local-part of an addr-spec.
+  (issue [#1012](https://github.com/jstedfast/MimeKit/issues/1012))
+* Removed explicit refs to CompilerServices.Unsafe and Encoding.CodePages from net6.0/8.0.
+  (issue [#1013](https://github.com/jstedfast/MimeKit/issues/1013))
+
+## MimeKit 4.4.0 (2024-03-02)
+
+* Added net8.0 target.
+* Improved folding logic for Disposition-Notification-Options header values.
+  (issue [#979](https://github.com/jstedfast/MimeKit/issues/979))
+* Added interfaces for MimeMessage, MimeEntity, MimePart, Multipart, etc.
+  (issue [#980](https://github.com/jstedfast/MimeKit/issues/980))
+* Fixed the FormatOptions.NewLineFormat setter logic.
+* Modified AttachmentCollection.Add() for message/rfc822 attachments to better
+  handle MimeParser exceptions.
+  (issue [#1001](https://github.com/jstedfast/MimeKit/issues/1001))
+* Bump BouncyCastle dependency to v2.3.0.
+* Added support for ECC S/MIME certificates.
+  (issue [#998](https://github.com/jstedfast/MimeKit/issues/998))
+* Improved Unix2Dos and Dos2Unix filters by fixing some corner cases exposed by new unit tests.
+* Fixed MaxMimeDepth logic to still use MimePart subclasses when reached.
+  (issue [#1006](https://github.com/jstedfast/MimeKit/issues/1006))
+
+## MimeKit 4.3.0 (2023-11-11)
+
+* Added work-around for broken Message-ID header values of the form &lt;id@@domain&gt;.
+  (issue [#962](https://github.com/jstedfast/MimeKit/issues/962))
+* Added virtual Multipart.TryGetValue(TextFormat, out TextPart) method that recursively
+  iterates over child parts to find the TextPart with the desired format.
+* Fixed MimeMessage.TextBody/HtmlBody to locate the text body in a multipart/mixed that is
+  inside of a multipart/alternative. This resolves an issue locating the text body within
+  some broken iOS Apple Mail messages. (issue [#963](https://github.com/jstedfast/MimeKit/issues/963))
+
+## MimeKit 4.2.0 (2023-09-02)
+
+* Follow the spec more closely for allowable header field characters.
+  (issue [#936](https://github.com/jstedfast/MimeKit/issues/936))
+* Avoid throwing NRE when an RC2 algorithm was used for S/MIME w/o parameters.
+  (issue [#941](https://github.com/jstedfast/MimeKit/issues/941))
+* Added a few more (undocumented) TnefPropertyIds.
+* Optimized AttachmentCollection.Add(byte[], ...) by not copying the data to a new stream.
+* Improved performance of HtmlTokenizer.
+* Added new HtmlTokenizer constructors that take a Stream instead of a TextReader. This
+  allows for a slight performance improvement over using a TextReader as well.
+* Lazy-allocate Base64/QuotedPrintable decoders when decoding rfc2047-encoded headers.
+  This is a very small reduction in GC pressure.
+* Reduced memory allocations in Rfc2047.DecodePhrase() and DecodeText().
+* Avoid allocating empty `List<string>`s in DomainList.ctor(), lazily allocate the
+  list only when a domain is added. Another minor reduction in GC pressure.
+* Updated the Date parser to allocate an internal list of tokens with a optimal
+  initial capacity to avoid the need for reallocating.
+
 ## MimeKit 4.1.0 (2023-06-17)
 
 * Readded the System.Net.Mail-to-MimeKit conversion APIs for the netstandard2.x frameworks.

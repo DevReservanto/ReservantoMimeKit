@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,11 @@ using System;
 using System.Buffers;
 
 namespace MimeKit.Utils {
-	internal ref struct ByteArrayBuilder
+	ref struct ByteArrayBuilder
 	{
 		byte[] buffer;
 		int length;
-				
+
 		public ByteArrayBuilder (int initialCapacity)
 		{
 			buffer = ArrayPool<byte>.Shared.Rent (initialCapacity);

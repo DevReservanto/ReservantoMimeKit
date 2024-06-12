@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -517,7 +517,8 @@ namespace MimeKit {
 
 		void EncodeRfc2231 (FormatOptions options, ref ValueStringBuilder builder, ref int lineLength, Encoding headerEncoding)
 		{
-			var bestEncoding = options.International ? CharsetUtils.UTF8 : GetBestEncoding (Value, encoding ?? headerEncoding);
+			// Note: Arguably, this should be: bestEncoding = encoding ?? GetBestEncoding (Value, headerEncoding);
+			var bestEncoding = GetBestEncoding (Value, encoding ?? headerEncoding);
 			int maxLength = options.MaxLineLength - (Name.Length + 6);
 			var charset = CharsetUtils.GetMimeCharset (bestEncoding);
 			var encoder = (Encoder) bestEncoding.GetEncoder ();
@@ -653,7 +654,8 @@ namespace MimeKit {
 
 		void EncodeRfc2047 (FormatOptions options, ref ValueStringBuilder builder, ref int lineLength, Encoding headerEncoding)
 		{
-			var bestEncoding = options.International ? CharsetUtils.UTF8 : GetBestEncoding (Value, encoding ?? headerEncoding);
+			// Note: Arguably, this should be: bestEncoding = encoding ?? GetBestEncoding (Value, headerEncoding);
+			var bestEncoding = GetBestEncoding (Value, encoding ?? headerEncoding);
 			var charset = CharsetUtils.GetMimeCharset (bestEncoding);
 			var encoder = (Encoder) bestEncoding.GetEncoder ();
 			int index = 0;

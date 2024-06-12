@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -134,11 +134,11 @@ namespace MimeKit {
 			}
 		}
 
-		static void LoadContent (MimePart attachment, Stream stream, CancellationToken cancellationToken)
+		static void LoadContent (MimePart attachment, Stream stream, bool copyStream, CancellationToken cancellationToken)
 		{
 			cancellationToken.ThrowIfCancellationRequested ();
 
-			var content = new MemoryBlockStream ();
+			Stream content = copyStream ? new MemoryBlockStream () : null;
 
 			try {
 				if (attachment.ContentType.IsMimeType ("text", "*")) {
@@ -151,7 +151,7 @@ namespace MimeKit {
 						while ((nread = stream.Read (buf, 0, BufferLength)) > 0) {
 							cancellationToken.ThrowIfCancellationRequested ();
 							filter.Filter (buf, 0, nread, out index, out length);
-							content.Write (buf, 0, nread);
+							content?.Write (buf, 0, nread);
 						}
 
 						filter.Flush (buf, 0, 0, out index, out length);
@@ -162,23 +162,28 @@ namespace MimeKit {
 					attachment.ContentTransferEncoding = filter.GetBestEncoding (EncodingConstraint.SevenBit);
 				} else {
 					attachment.ContentTransferEncoding = ContentEncoding.Base64;
-					stream.CopyTo (content, 4096);
+
+					if (copyStream)
+						stream.CopyTo (content, 4096);
 				}
 
-				content.Position = 0;
+				if (copyStream)
+					content.Position = 0;
+				else
+					stream.Position = 0;
 
-				attachment.Content = new MimeContent (content);
+				attachment.Content = new MimeContent (copyStream ? content : stream);
 			} catch {
-				content.Dispose ();
+				content?.Dispose ();
 				throw;
 			}
 		}
 
-		static async Task LoadContentAsync (MimePart attachment, Stream stream, CancellationToken cancellationToken)
+		static async Task LoadContentAsync (MimePart attachment, Stream stream, bool copyStream, CancellationToken cancellationToken)
 		{
 			cancellationToken.ThrowIfCancellationRequested ();
 
-			var content = new MemoryBlockStream ();
+			Stream content = copyStream ? new MemoryBlockStream () : null;
 
 			try {
 				if (attachment.ContentType.IsMimeType ("text", "*")) {
@@ -191,7 +196,7 @@ namespace MimeKit {
 						while ((nread = await stream.ReadAsync (buf, 0, BufferLength, cancellationToken).ConfigureAwait (false)) > 0) {
 							cancellationToken.ThrowIfCancellationRequested ();
 							filter.Filter (buf, 0, nread, out index, out length);
-							content.Write (buf, 0, nread);
+							content?.Write (buf, 0, nread);
 						}
 
 						filter.Flush (buf, 0, 0, out index, out length);
@@ -202,14 +207,19 @@ namespace MimeKit {
 					attachment.ContentTransferEncoding = filter.GetBestEncoding (EncodingConstraint.SevenBit);
 				} else {
 					attachment.ContentTransferEncoding = ContentEncoding.Base64;
-					await stream.CopyToAsync (content, 4096, cancellationToken).ConfigureAwait (false);
+
+					if (copyStream)
+						await stream.CopyToAsync (content, 4096, cancellationToken).ConfigureAwait (false);
 				}
 
-				content.Position = 0;
+				if (copyStream)
+					content.Position = 0;
+				else
+					stream.Position = 0;
 
-				attachment.Content = new MimeContent (content);
+				attachment.Content = new MimeContent (copyStream ? content : stream);
 			} catch {
-				content.Dispose ();
+				content?.Dispose ();
 				throw;
 			}
 		}
@@ -228,16 +238,33 @@ namespace MimeKit {
 			return index > 0 ? path.Substring (index + 1) : path;
 		}
 
-		MimeEntity CreateAttachment (ContentType contentType, string path, Stream stream, CancellationToken cancellationToken)
+		MimeEntity CreateAttachment (ContentType contentType, bool autoDetected, string path, Stream stream, bool copyStream, CancellationToken cancellationToken)
 		{
 			var fileName = GetFileName (path);
-			MimeEntity attachment;
+			MimeEntity attachment = null;
 
 			if (contentType.IsMimeType ("message", "rfc822")) {
-				var message = MimeMessage.Load (stream, cancellationToken);
+				long position = stream.CanSeek ? stream.Position : 0;
 
-				attachment = new MessagePart { Message = message };
-			} else {
+				try {
+					var message = MimeMessage.Load (stream, cancellationToken);
+
+					if (!copyStream)
+						stream.Dispose ();
+
+					attachment = new MessagePart { Message = message };
+				} catch (FormatException) {
+					if (autoDetected && stream.CanSeek) {
+						// If the contentType was auto-detected and the stream is seekable, fall back to attaching this content as a generic stream
+						contentType = new ContentType ("application", "octet-stream");
+						stream.Position = position;
+					} else {
+						throw;
+					}
+				}
+			}
+
+			if (attachment is null) {
 				MimePart part;
 
 				if (contentType.IsMimeType ("text", "*")) {
@@ -247,7 +274,7 @@ namespace MimeKit {
 					part = new MimePart (contentType);
 				}
 
-				LoadContent (part, stream, cancellationToken);
+				LoadContent (part, stream, copyStream, cancellationToken);
 				attachment = part;
 			}
 
@@ -262,16 +289,33 @@ namespace MimeKit {
 			return attachment;
 		}
 
-		async Task<MimeEntity> CreateAttachmentAsync (ContentType contentType, string path, Stream stream, CancellationToken cancellationToken)
+		async Task<MimeEntity> CreateAttachmentAsync (ContentType contentType, bool autoDetected, string path, Stream stream, bool copyStream, CancellationToken cancellationToken)
 		{
 			var fileName = GetFileName (path);
-			MimeEntity attachment;
+			MimeEntity attachment = null;
 
 			if (contentType.IsMimeType ("message", "rfc822")) {
-				var message = await MimeMessage.LoadAsync (stream, cancellationToken).ConfigureAwait (false);
+				long position = stream.CanSeek ? stream.Position : 0;
 
-				attachment = new MessagePart { Message = message };
-			} else {
+				try {
+					var message = await MimeMessage.LoadAsync (stream, cancellationToken).ConfigureAwait (false);
+
+					if (!copyStream)
+						stream.Dispose ();
+
+					attachment = new MessagePart { Message = message };
+				} catch (FormatException) {
+					if (autoDetected && stream.CanSeek) {
+						// If the contentType was auto-detected and the stream is seekable, fall back to attaching this content as a generic stream
+						contentType = new ContentType ("application", "octet-stream");
+						stream.Position = position;
+					} else {
+						throw;
+					}
+				}
+			}
+
+			if (attachment is null) {
 				MimePart part;
 
 				if (contentType.IsMimeType ("text", "*")) {
@@ -281,7 +325,7 @@ namespace MimeKit {
 					part = new MimePart (contentType);
 				}
 
-				await LoadContentAsync (part, stream, cancellationToken).ConfigureAwait (false);
+				await LoadContentAsync (part, stream, copyStream, cancellationToken).ConfigureAwait (false);
 				attachment = part;
 			}
 
@@ -333,13 +377,12 @@ namespace MimeKit {
 			if (contentType is null)
 				throw new ArgumentNullException (nameof (contentType));
 
-			using (var stream = new MemoryStream (data, false)) {
-				var attachment = CreateAttachment (contentType, fileName, stream, CancellationToken.None);
+			var stream = new MemoryStream (data, false);
+			var attachment = CreateAttachment (contentType, false, fileName, stream, false, CancellationToken.None);
 
-				attachments.Add (attachment);
+			attachments.Add (attachment);
 
-				return attachment;
-			}
+			return attachment;
 		}
 
 		/// <summary>
@@ -386,7 +429,7 @@ namespace MimeKit {
 			if (contentType is null)
 				throw new ArgumentNullException (nameof (contentType));
 
-			var attachment = CreateAttachment (contentType, fileName, stream, cancellationToken);
+			var attachment = CreateAttachment (contentType, false, fileName, stream, true, cancellationToken);
 
 			attachments.Add (attachment);
 
@@ -437,7 +480,7 @@ namespace MimeKit {
 			if (contentType is null)
 				throw new ArgumentNullException (nameof (contentType));
 
-			var attachment = await CreateAttachmentAsync (contentType, fileName, stream, cancellationToken).ConfigureAwait (false);
+			var attachment = await CreateAttachmentAsync (contentType, false, fileName, stream, true, cancellationToken).ConfigureAwait (false);
 
 			attachments.Add (attachment);
 
@@ -473,13 +516,12 @@ namespace MimeKit {
 			if (data is null)
 				throw new ArgumentNullException (nameof (data));
 
-			using (var stream = new MemoryStream (data, false)) {
-				var attachment = CreateAttachment (GetMimeType (fileName), fileName, stream, CancellationToken.None);
+			var stream = new MemoryStream (data, false);
+			var attachment = CreateAttachment (GetMimeType (fileName), true, fileName, stream, false, CancellationToken.None);
 
-				attachments.Add (attachment);
+			attachments.Add (attachment);
 
-				return attachment;
-			}
+			return attachment;
 		}
 
 		/// <summary>
@@ -518,7 +560,7 @@ namespace MimeKit {
 			if (stream is null)
 				throw new ArgumentNullException (nameof (stream));
 
-			var attachment = CreateAttachment (GetMimeType (fileName), fileName, stream, cancellationToken);
+			var attachment = CreateAttachment (GetMimeType (fileName), true, fileName, stream, true, cancellationToken);
 
 			attachments.Add (attachment);
 
@@ -561,7 +603,7 @@ namespace MimeKit {
 			if (stream is null)
 				throw new ArgumentNullException (nameof (stream));
 
-			var attachment = await CreateAttachmentAsync (GetMimeType (fileName), fileName, stream, cancellationToken).ConfigureAwait (false);
+			var attachment = await CreateAttachmentAsync (GetMimeType (fileName), true, fileName, stream, true, cancellationToken).ConfigureAwait (false);
 
 			attachments.Add (attachment);
 
@@ -612,7 +654,7 @@ namespace MimeKit {
 				throw new ArgumentNullException (nameof (contentType));
 
 			using (var stream = File.OpenRead (fileName)) {
-				var attachment = CreateAttachment (contentType, fileName, stream, cancellationToken);
+				var attachment = CreateAttachment (contentType, false, fileName, stream, true, cancellationToken);
 
 				attachments.Add (attachment);
 
@@ -664,7 +706,7 @@ namespace MimeKit {
 				throw new ArgumentNullException (nameof (contentType));
 
 			using (var stream = File.OpenRead (fileName)) {
-				var attachment = await CreateAttachmentAsync (contentType, fileName, stream, cancellationToken).ConfigureAwait (false);
+				var attachment = await CreateAttachmentAsync (contentType, false, fileName, stream, true, cancellationToken).ConfigureAwait (false);
 
 				attachments.Add (attachment);
 
@@ -715,7 +757,7 @@ namespace MimeKit {
 				throw new ArgumentException ("The specified file path is empty.", nameof (fileName));
 
 			using (var stream = File.OpenRead (fileName)) {
-				var attachment = CreateAttachment (GetMimeType (fileName), fileName, stream, cancellationToken);
+				var attachment = CreateAttachment (GetMimeType (fileName), true, fileName, stream, true, cancellationToken);
 
 				attachments.Add (attachment);
 
@@ -763,7 +805,7 @@ namespace MimeKit {
 				throw new ArgumentException ("The specified file path is empty.", nameof (fileName));
 
 			using (var stream = File.OpenRead (fileName)) {
-				var attachment = await CreateAttachmentAsync (GetMimeType (fileName), fileName, stream, cancellationToken).ConfigureAwait (false);
+				var attachment = await CreateAttachmentAsync (GetMimeType (fileName), true, fileName, stream, true, cancellationToken).ConfigureAwait (false);
 
 				attachments.Add (attachment);
 

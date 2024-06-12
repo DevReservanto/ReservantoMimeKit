@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ namespace MimeKit {
 	/// tree of MIME entities such as a text/plain MIME part and a collection
 	/// of file attachments.</para>
 	/// </remarks>
-	public class MimeMessage : IDisposable
+	public class MimeMessage : IMimeMessage
 	{
 		static readonly HeaderId[] StandardAddressHeaders = {
 			HeaderId.ResentFrom, HeaderId.ResentReplyTo, HeaderId.ResentTo, HeaderId.ResentCc, HeaderId.ResentBcc,
@@ -287,8 +287,9 @@ namespace MimeKit {
 		/// a message will contain transmission headers such as From and To along
 		/// with metadata headers such as Subject and Date, but may include just
 		/// about anything.</para>
-		/// <note type="tip">To access any MIME headers other than
-		/// <see cref="HeaderId.MimeVersion"/>, you will need to access the
+		/// <note type="tip">To access any MIME headers such as <see cref="HeaderId.ContentType"/>,
+		/// <see cref="HeaderId.ContentDisposition"/>, <see cref="HeaderId.ContentTransferEncoding"/>
+		/// or any other <c>Content-*</c> header, you will need to access the
 		/// <see cref="MimeEntity.Headers"/> property of the <see cref="Body"/>.
 		/// </note>
 		/// </remarks>
@@ -1024,57 +1025,6 @@ namespace MimeKit {
 			get; set;
 		}
 
-		static bool TryGetMultipartBody (Multipart multipart, TextFormat format, out string body)
-		{
-			if (multipart is MultipartAlternative alternative) {
-				body = alternative.GetTextBody (format);
-				return body != null;
-			}
-
-			if (multipart is MultipartRelated related) {
-				// Note: If the multipart/related root document is HTML, then this is the droid we are looking for.
-				var root = related.Root;
-
-				if (root is TextPart text) {
-					body = text.IsFormat (format) ? text.Text : null;
-					return body != null;
-				}
-
-				// maybe the root is another multipart (like multipart/alternative)?
-				if (root is Multipart multi)
-					return TryGetMultipartBody (multi, format, out body);
-			} else {
-				// Note: This is probably a multipart/mixed... and if not, we can still treat it like it is.
-				for (int i = 0; i < multipart.Count; i++) {
-					// descend into nested multiparts, if there are any...
-					if (multipart[i] is Multipart multi) {
-						if (TryGetMultipartBody (multi, format, out body))
-							return true;
-
-						// The text body should never come after a multipart.
-						break;
-					}
-
-					// Look for the first non-attachment text part (realistically, the body text will
-					// precede any attachments, but I'm not sure we can rely on that assumption).
-					if (multipart[i] is TextPart text && !text.IsAttachment) {
-						if (text.IsFormat (format)) {
-							body = MultipartAlternative.GetText (text);
-							return true;
-						}
-
-						// Note: the first text/* part in a multipart/mixed is the text body.
-						// If it's not in the format we're looking for, then it doesn't exist.
-						break;
-					}
-				}
-			}
-
-			body = null;
-
-			return false;
-		}
-
 		/// <summary>
 		/// Get the text body of the message if it exists.
 		/// </summary>
@@ -1109,11 +1059,10 @@ namespace MimeKit {
 		public string GetTextBody (TextFormat format)
 		{
 			if (Body is Multipart multipart) {
-				if (TryGetMultipartBody (multipart, format, out var text))
-					return text;
-			} else {
-				if (Body is TextPart body && body.IsFormat (format) && !body.IsAttachment)
-					return body.Text;
+				if (multipart.TryGetValue (format, out var body))
+					return MultipartAlternative.GetText (body);
+			} else if (Body is TextPart text && text.IsFormat (format) && !text.IsAttachment) {
+				return MultipartAlternative.GetText (text);
 			}
 
 			return null;
@@ -1166,7 +1115,7 @@ namespace MimeKit {
 			get { return EnumerateMimeParts (Body).Where (x => x.IsAttachment); }
 		}
 
-		static void AddMailboxes (IList<MailboxAddress> recipients, HashSet<string> unique, IEnumerable<MailboxAddress> mailboxes)
+		static void AddMailboxes (List<MailboxAddress> recipients, HashSet<string> unique, IEnumerable<MailboxAddress> mailboxes)
 		{
 			foreach (var mailbox in mailboxes) {
 				if (unique is null || unique.Add (mailbox.Address))

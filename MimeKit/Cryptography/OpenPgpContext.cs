@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -661,7 +661,7 @@ namespace MimeKit.Cryptography {
 			}
 
 			builder.Path = "/pks/lookup";
-			builder.Query = string.Format (CultureInfo.InvariantCulture, "op=get&search=0x{0:X}", keyId);
+			builder.Query = string.Format (CultureInfo.InvariantCulture, "op=get&search=0x{0:X16}", keyId);
 
 			using (var stream = new MemoryBlockStream ()) {
 				using (var filtered = new FilteredStream (stream)) {
@@ -2292,9 +2292,7 @@ namespace MimeKit.Cryptography {
 						}
 					} else if (obj is PgpSignatureList) {
 						signatureList = (PgpSignatureList) obj;
-					} else if (obj is PgpLiteralData) {
-						var literal = (PgpLiteralData) obj;
-
+					} else if (obj is PgpLiteralData literal) {
 						using (var stream = literal.GetDataStream ()) {
 							var buf = ArrayPool<byte>.Shared.Rent (BufferLength);
 							int nread;

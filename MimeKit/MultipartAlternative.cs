@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ namespace MimeKit {
 	/// (in other words, the last entity will be in a format that, when rendered, will most closely match
 	/// what the sending client's WYSISYG editor produced).
 	/// </remarks>
-	public class MultipartAlternative : Multipart
+	public class MultipartAlternative : Multipart, IMultipartAlternative
 	{
 		/// <summary>
 		/// Initialize a new instance of the <see cref="MultipartAlternative"/> class.
@@ -170,34 +170,43 @@ namespace MimeKit {
 		/// </exception>
 		public string GetTextBody (TextFormat format)
 		{
-			CheckDisposed ();
-
-			// walk the multipart/alternative children backwards from greatest level of faithfulness to the least faithful
-			for (int i = Count - 1; i >= 0; i--) {
-				if (this[i] is MultipartAlternative alternative) {
-					// Note: nested multipart/alternative parts make no sense... yet here we are.
-					return alternative.GetTextBody (format);
-				}
-
-				TextPart text;
-
-				if (this[i] is MultipartRelated related) {
-					var root = related.Root;
-
-					alternative = root as MultipartAlternative;
-					if (alternative != null)
-						return alternative.GetTextBody (format);
-
-					text = root as TextPart;
-				} else {
-					text = this[i] as TextPart;
-				}
-
-				if (text != null && text.IsFormat (format))
-					return GetText (text);
-			}
+			if (TryGetValue (format, out var body))
+				return GetText (body);
 
 			return null;
+		}
+
+		/// <summary>
+		/// Get the preferred message body if it exists.
+		/// </summary>
+		/// <remarks>
+		/// Gets the preferred message body if it exists.
+		/// </remarks>
+		/// <param name="format">The preferred text format.</param>
+		/// <param name="body">The MIME part containing the message body in the preferred text format.</param>
+		/// <returns><c>true</c> if the body part is found; otherwise, <c>false</c>.</returns>
+		/// <exception cref="System.ObjectDisposedException">
+		/// The <see cref="Multipart"/> has been disposed.
+		/// </exception>
+		public override bool TryGetValue (TextFormat format, out TextPart body)
+		{
+			CheckDisposed ();
+
+			// Walk the multipart/alternative children backwards from greatest level of faithfulness to the least faithful.
+			for (int i = Count - 1; i >= 0; i--) {
+				// Descend into child multiparts.
+				if (this[i] is Multipart multipart && multipart.TryGetValue (format, out body))
+					return true;
+
+				if (this[i] is TextPart text && text.IsFormat (format)) {
+					body = text;
+					return true;
+				}
+			}
+
+			body = null;
+
+			return false;
 		}
 	}
 }

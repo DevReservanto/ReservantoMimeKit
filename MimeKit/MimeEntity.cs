@@ -3,7 +3,7 @@
 //
 // Author: Jeffrey Stedfast <jestedfa@microsoft.com>
 //
-// Copyright (c) 2013-2023 .NET Foundation and Contributors
+// Copyright (c) 2013-2024 .NET Foundation and Contributors
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ namespace MimeKit {
 	/// <see cref="MimePart"/> who's content is another MIME message/document). All other types are
 	/// derivatives of one of those.</para>
 	/// </remarks>
-	public abstract class MimeEntity : IDisposable
+	public abstract class MimeEntity : IMimeEntity
 	{
 		[Flags]
 		internal enum LazyLoadedFields : short
@@ -1807,7 +1807,7 @@ namespace MimeKit {
 			if (content is null)
 				throw new ArgumentNullException (nameof (content));
 
-			var format = FormatOptions.CloneDefault ();
+			var format = FormatOptions.Default.Clone ();
 			format.NewLineFormat = NewLineFormat.Dos;
 
 			var encoded = contentType.Encode (format, Encoding.UTF8);
@@ -1860,7 +1860,7 @@ namespace MimeKit {
 			if (content is null)
 				throw new ArgumentNullException (nameof (content));
 
-			var format = FormatOptions.CloneDefault ();
+			var format = FormatOptions.Default.Clone ();
 			format.NewLineFormat = NewLineFormat.Dos;
 
 			var encoded = contentType.Encode (format, Encoding.UTF8);
@@ -1882,7 +1882,7 @@ namespace MimeKit {
 		/// where the headers are parsed separately from the content.
 		/// </remarks>
 		/// <example>
-		/// <code language="c#" source="Examples\MultipartFormDataExample.cs" region="ParseMultipartFormDataSimple" />
+		/// <code language="c#" source="Examples\MultipartFormDataExamples.cs" region="ParseMultipartFormDataSimple" />
 		/// </example>
 		/// <returns>The parsed MIME entity.</returns>
 		/// <param name="contentType">The Content-Type of the stream.</param>
